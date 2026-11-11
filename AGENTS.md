@@ -1,4 +1,4 @@
-# Voyager Travel generator
+# Sample app generator
 
 This repository generates sample apps from scenarios (a host and a dataset); read `README.md` first. Each generated app (by default `../voyager-travel-sample` and `../quick-start-sample`) is a separate repository with its own history.
 

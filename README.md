@@ -1,4 +1,4 @@
-# Voyager Travel generator
+# Sample app generator
 
 Generates sample apps from scratch: a stock ASP.NET Core template, a data model, a seeded SQLite database and its assets. The generator does the seeding, so the generated app contains no seeding code.
 
