@@ -8,9 +8,9 @@ The back-office application for Voyager Travel, a fictitious small-group tour op
 dotnet run --project src/VoyagerTravel
 ```
 
-On the first run in Development, the app applies the migrations and seeds `src/VoyagerTravel/app.db`. Delete `app.db` to start again with fresh data, and `src/VoyagerTravel/uploads` to remove uploaded images. Seeded dates are relative to the day the database is created.
+The database, `src/VoyagerTravel/app.db`, comes seeded. Seeded dates are relative to the day it was created. Delete the files in `src/VoyagerTravel/uploads`, apart from `.gitkeep`, to remove uploaded images.
 
-`dotnet ef database update --project src/VoyagerTravel` also creates and seeds the database. Restore the local `dotnet-ef` tool with `dotnet tool restore` first.
+After adding a migration, apply it with `dotnet ef database update --project src/VoyagerTravel`. Restore the local `dotnet-ef` tool with `dotnet tool restore` first.
 
 ## Accounts
 
@@ -38,4 +38,4 @@ Images are in `src/VoyagerTravel/wwwroot/images`; see `CREDITS.md` there for pho
 
 ## Uploaded images
 
-Save uploaded images with `IImageStore` (`src/VoyagerTravel/Services`), which returns the URL to store on the record. The registered `LocalImageStore` stands in for blob storage: it writes to `src/VoyagerTravel/uploads`, which the app serves at `/uploads` and Git ignores. The seeded images in `wwwroot/images` are part of the app and are not uploads.
+Save uploaded images with `IImageStore` (`src/VoyagerTravel/Services`), which returns the URL to store on the record. The registered `LocalImageStore` stands in for blob storage: it writes to `src/VoyagerTravel/uploads`, which the app serves at `/uploads` and Git ignores, apart from its `.gitkeep`. The seeded images in `wwwroot/images` are part of the app and are not uploads.

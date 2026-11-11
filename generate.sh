@@ -48,26 +48,23 @@ dotnet new mvc --auth Individual --name "$project" --output "src/$project" > /de
 dotnet sln add "src/$project" > /dev/null
 
 ef_version="$(sed -nE 's/.*Include="Microsoft\.EntityFrameworkCore\.Sqlite" Version="([^"]+)".*/\1/p' "$app/$project.csproj")"
+target_framework="$(sed -nE 's/.*<TargetFramework>([^<]+)<\/TargetFramework>.*/\1/p' "$app/$project.csproj")"
 dotnet new tool-manifest > /dev/null
 dotnet tool install dotnet-ef --version "$ef_version" > /dev/null
-dotnet add "src/$project" package Bogus --version 35.6.5 > /dev/null
 
-echo "Adding the domain model, seeding and images"
+echo "Adding the domain model and images"
 rm -rf "$app/Data/Migrations" "$app/app.db"
 cp -R "$seed_dir/overlay/." "$target/"
 cp -R "$seed_dir/assets/images" "$app/wwwroot/images"
 perl -i -pe 's/IdentityUser/ApplicationUser/g; $_ .= "\@using VoyagerTravel.Data\r\n" if $. == 1' "$app/Views/Shared/_LoginPartial.cshtml"
-printf '\n# SQLite database, created and seeded on first run\n*.db\n*.db-shm\n*.db-wal\n' >> .gitignore
-printf '\n# Uploaded images, saved by LocalImageStore\n/src/%s/uploads/\n' "$project" >> .gitignore
+printf '\n# SQLite database, created and seeded by the generator\n*.db\n*.db-shm\n*.db-wal\n' >> .gitignore
+printf '\n# Uploaded images, saved by LocalImageStore\n/src/%s/uploads/*\n!/src/%s/uploads/.gitkeep\n' "$project" "$project" >> .gitignore
 
 echo "Creating the initial migration"
 dotnet ef migrations add InitialCreate --project "src/$project" --output-dir Data/Migrations | grep -iE "error|warn" || true
-dotnet build --nologo --verbosity quiet
 
-echo "Committing"
-git init --quiet --initial-branch master
-git -c core.safecrlf=false add --all
-git commit --quiet --message "Create the Voyager Travel app"
+echo "Creating and seeding the database"
+dotnet run --project "$seed_dir/seeder" --property:AppProject="$app/$project.csproj" --property:AppTargetFramework="$target_framework" -- "$app/app.db"
 
 echo "Done: $target"
 echo "Run it with: dotnet run --project $target/src/$project"

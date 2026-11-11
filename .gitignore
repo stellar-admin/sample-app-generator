@@ -1,2 +1,4 @@
 node_modules/
 tools/images/.cache/
+bin/
+obj/

@@ -75,7 +75,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Deleting a record that others still point to fails, unless the others belong to it.
         var foreignKeys = builder.Model.GetEntityTypes()
             .Where(entityType => entityType.ClrType.Namespace == typeof(Trip).Namespace)
-            .SelectMany(entityType => entityType.GetForeignKeys());
+            .SelectMany(entityType => entityType.GetForeignKeys())
+            .Where(foreignKey => !foreignKey.IsOwnership);
 
         foreach (var foreignKey in foreignKeys)
         {

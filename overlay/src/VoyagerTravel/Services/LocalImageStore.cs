@@ -4,7 +4,7 @@ namespace VoyagerTravel.Services;
 
 /// <summary>
 /// Stores images in the uploads folder next to the app, standing in for blob storage. The folder is
-/// served at /uploads and ignored by Git; delete it together with app.db to start over.
+/// served at /uploads, and Git ignores everything in it except .gitkeep.
 /// </summary>
 public partial class LocalImageStore(IWebHostEnvironment environment) : IImageStore
 {

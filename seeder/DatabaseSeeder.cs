@@ -21,17 +21,6 @@ public static class DatabaseSeeder
         context.SaveChanges();
     }
 
-    public static async Task SeedAsync(DbContext context, CancellationToken cancellationToken)
-    {
-        if (await context.Set<Country>().AnyAsync(cancellationToken))
-        {
-            return;
-        }
-
-        Populate(context);
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
     private static void Populate(DbContext context)
     {
         var data = new SeedData(DateOnly.FromDateTime(DateTime.UtcNow));

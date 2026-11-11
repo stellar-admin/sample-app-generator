@@ -16,7 +16,7 @@ const seedRoot = path.resolve(here, "../..");
 const imagesRoot = path.join(seedRoot, "assets/images");
 const manifestPath = path.join(imagesRoot, "photos.json");
 const cacheRoot = path.join(here, ".cache");
-const catalogPath = path.join(seedRoot, "overlay/src/VoyagerTravel/Data/Seeding/Catalog.cs");
+const catalogPath = path.join(seedRoot, "seeder/Catalog.cs");
 
 // Searches that find better photos than "<destination> <country>", tried in order. Landmarks work best.
 const queryOverrides = {
