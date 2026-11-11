@@ -1,4 +1,4 @@
 node_modules/
-tools/images/.cache/
+datasets/*/tools/images/.cache/
 bin/
 obj/

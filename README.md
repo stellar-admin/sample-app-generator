@@ -1,40 +1,63 @@
 # Voyager Travel generator
 
-Generates the Voyager Travel app from scratch: the stock ASP.NET Core MVC template with Identity on SQLite, plus a domain model for a fictitious small-group tour operator, a seeded database and bundled images. The generator does the seeding, so the generated app contains no seeding code.
+Generates sample apps from scratch: a stock ASP.NET Core template, a data model, a seeded SQLite database and its assets. The generator does the seeding, so the generated app contains no seeding code.
 
-Use it to get a clean, realistic starting point whenever you need one, for example to rerun an experiment from the beginning or after changing the data model.
+Use it to get a clean, realistic starting point whenever you need one, for example to rerun an experiment from the beginning or after changing a data model.
 
-## Generate the app
+## Scenarios, hosts and datasets
+
+A scenario combines a host and a dataset, and names the default target:
+
+- **Hosts** (`hosts/*.env`) say which `dotnet new` template to use and with which arguments: `mvc` and `webapp` (Razor Pages), each with Identity (`-identity`) or without.
+- **Datasets** (`datasets/<name>/`) hold a data model, its seeder and its assets, and are independent of each other.
+- **Scenarios** (`scenarios/*.env`) pick one of each: `voyager-travel` (the full Voyager Travel back office on `mvc-identity`) and `quick-start` (the admin panel quick start's trips and departures on `mvc`).
+
+## Generate an app
 
 ```bash
-./generate.sh                            # creates ../voyager-travel-sample
-./generate.sh ../voyager-travel-sample-2 # or any other directory
-./generate.sh --force                    # deletes and recreates an existing target
+./generate.sh                                        # the voyager-travel scenario, in ../voyager-travel-sample
+./generate.sh quick-start                            # the quick-start scenario, in ../quick-start-sample
+./generate.sh voyager-travel ../voyager-travel-2     # a scenario in another directory
+./generate.sh quick-start /tmp/qs --host webapp      # replace the scenario's host (or --dataset)
+./generate.sh quick-start --force                    # delete and recreate an existing target
 ```
 
 The script uses the .NET CLI for everything it can:
 
-1. `dotnet new gitignore`, `sln` and `mvc --auth Individual` (SQLite is the template's default).
-2. `dotnet new tool-manifest` and `dotnet tool install dotnet-ef`, matching the template's EF Core version.
-3. Copies `overlay/` over the template: the domain model, `ApplicationUser`, `ApplicationDbContext`, `Program.cs` and the app's README.
-4. Copies `assets/images/` to `wwwroot/images`.
-5. `dotnet ef migrations add InitialCreate`.
-6. Runs the seeder in `seeder/`, which builds against the generated app, applies its migration to `src/VoyagerTravel/app.db` and fills it with the seed data.
+1. `dotnet new gitignore`, `sln` and the host's template with its arguments.
+2. Checks that the dataset and the host agree on Identity, and that the dataset supports the template.
+3. For a host without Identity, adds EF Core on SQLite the way the Identity templates set it up: the `Sqlite` and `Design` packages (the latest release for the app's .NET version), a `DefaultConnection` and `AddDbContext<ApplicationDbContext>` in `Program.cs`.
+4. `dotnet new tool-manifest` and `dotnet tool install dotnet-ef`, matching the app's EF Core version.
+5. Copies the dataset's `overlay/` over the target and its `assets/` into `wwwroot`, and runs its `customize.sh` if it has one.
+6. `dotnet ef migrations add InitialCreate`.
+7. Runs the dataset's `seeder/`, which builds against the generated app, applies its migration to `src/<Project>/app.db` and fills it with the seed data.
 
-The target is not a Git repository; run `git init` yourself if you want to keep it. To get fresh data, generate the app again. See the generated README for the seeded accounts.
+The target is not a Git repository; run `git init` yourself if you want to keep it. To get fresh data, generate the app again. See the generated README for what the app contains.
 
-Requires a .NET 10 SDK and `perl`. The generated app has no `global.json`, so it builds with whichever .NET 10 SDK is installed.
+Requires a .NET SDK and `perl`. The generated app has no `global.json`, so it builds with the newest installed SDK and targets its .NET version.
 
-## Change the data model
+## Add a dataset
 
-Edit the files under `overlay/src/VoyagerTravel` (entities in `Models/`, the context in `Data/`) and the seed data in `seeder/`, then generate again. Each generated app has a single `InitialCreate` migration, so there is never a migration history to maintain.
+Create `datasets/<name>/` with:
 
-## Images
+- `dataset.env`: `PROJECT` (the project and namespace name), `IDENTITY` (`true` when its context is an `IdentityDbContext`, so it needs a host with Identity, otherwise `false`), and optionally `TEMPLATES`, the templates it works with when it depends on one (for example by replacing `Program.cs`).
+- `overlay/`: copied over the target. It holds at least the model and `src/<Project>/Data/ApplicationDbContext.cs` in the `<Project>.Data` namespace, the name the Identity templates use and the generator registers, and the app's `README.md`.
+- `seeder/`: a console project that references the app through the `AppProject` and `AppTargetFramework` properties and takes the database file as its argument. See an existing dataset's seeder.
+- `assets/` (optional): copied into `wwwroot`.
+- `customize.sh` (optional): changes the overlay can't make, run with `TARGET`, `APP` and `PROJECT` set.
 
-`assets/images/` is committed and copied into each generated app as-is. The tools that produce it live in `tools/images` (Node.js):
+Then add a scenario in `scenarios/<name>.env` with its `HOST`, `DATASET` and `TARGET` (relative to this directory).
+
+## Change a data model
+
+Edit the files under the dataset's `overlay/src/<Project>` (entities in `Models/`, the context in `Data/`) and its seed data in `seeder/`, then generate again. Each generated app has a single `InitialCreate` migration, so there is never a migration history to maintain.
+
+## Voyager Travel images
+
+`datasets/voyager-travel/assets/images/` is committed and copied into each generated app as-is. The tools that produce it live in `datasets/voyager-travel/tools/images` (Node.js):
 
 ```bash
-cd tools/images
+cd datasets/voyager-travel/tools/images
 npm install
 node illustrations.mjs     # avatars and supplier logos (DiceBear, CC0)
 node photos.mjs            # missing photos from Openverse (CC0 and public domain only)
